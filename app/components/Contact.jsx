@@ -1,10 +1,53 @@
 import { assets } from '@/assets/assets'
 import Image from 'next/image'
-import React, { useState } from 'react'
-import { motion } from "motion/react"
+import React, { useEffect, useRef, useState } from 'react'
+import { motion, useInView } from "motion/react"
 
 const Contact = () => {
   const [result, setResult] = useState("");
+  const fullText =
+    "I’d be happy to connect with you. For inquiries, collaborations, or feedback, please reach out using the form below.";
+
+  const [typedText, setTypedText] = useState("");
+  const [showCursor, setShowCursor] = useState(true);
+
+  const paragraphRef = useRef(null);
+  const inView = useInView(paragraphRef, { once: false }); 
+
+   const intervalRef = useRef(null);
+
+  useEffect(() => {
+    if (!inView) {
+      // Stop if we leave the viewport
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      return;
+    }
+
+    // Reset everything
+    setTypedText("");
+    setShowCursor(true);
+
+    let i = 0;
+
+    // Clear any running interval before starting new one
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
+    intervalRef.current = setInterval(() => {
+      i++;
+      if (i <= fullText.length) {
+        // Slice directly from the original text → no race conditions
+        setTypedText(fullText.slice(0, i));
+      } else {
+        clearInterval(intervalRef.current);
+        setShowCursor(false);
+      }
+    }, 40);
+
+    return () => {
+      // Cleanup on unmount or on inView change
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [inView]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
@@ -44,9 +87,20 @@ const Contact = () => {
         className='text-center text-5xl font-ovo'>Get in touch</motion.h2>
 
         <motion.p 
+        ref={paragraphRef}
         initial={{opacity:0}} whileInView={{opacity:1}} transition={{duration:0.5, delay:0.7}}
         className='text-center max-w-2xl mx-auto mt-5 mb-12 font-ovo'>
-            I'd love to hear from you! If you have any qustions, comments or feedback, please use the form below.
+            {typedText}
+                  {/* Blinking cursor stays inline with text */}
+                  {showCursor && (
+                    <motion.span
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 0 }}
+                      transition={{ repeat: Infinity, duration: 0.8 }}
+                    >
+                      |
+                    </motion.span>
+                  )}
         </motion.p>
 
         <motion.form 

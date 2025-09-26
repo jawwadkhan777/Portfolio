@@ -80,7 +80,6 @@ const Header = () => {
       transition={{ duration: 0.6 }}
       className="max-w-2xl mx-auto font-ovo"
     >
-      {/* Typed text */}
       {typedText}
       {/* Blinking cursor stays inline with text */}
       {showCursor && (

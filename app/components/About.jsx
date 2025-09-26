@@ -1,9 +1,53 @@
 import { assets, infoList, toolsData } from '@/assets/assets'
 import Image from 'next/image'
-import React from 'react'
-import { motion } from "motion/react"
+import React, { useEffect, useRef, useState } from 'react'
+import { motion, useInView } from "motion/react"
 
 const About = ({isDarkMode}) => {
+  const fullText =
+    "Highly motivated and dedicated student with a strong commitment to continuous learning and personal growth. Eager to contribute my skills and work ethic to an organization that values innovation and professional development, while leveraging opportunities to further enhance my expertise and create mutual success.";
+
+  const [typedText, setTypedText] = useState("");
+  const [showCursor, setShowCursor] = useState(true);
+
+  const paragraphRef = useRef(null);
+  const inView = useInView(paragraphRef, { once: false }); 
+
+   const intervalRef = useRef(null);
+
+  useEffect(() => {
+    if (!inView) {
+      // Stop if we leave the viewport
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      return;
+    }
+
+    // Reset everything
+    setTypedText("");
+    setShowCursor(true);
+
+    let i = 0;
+
+    // Clear any running interval before starting new one
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
+    intervalRef.current = setInterval(() => {
+      i++;
+      if (i <= fullText.length) {
+        // Slice directly from the original text → no race conditions
+        setTypedText(fullText.slice(0, i));
+      } else {
+        clearInterval(intervalRef.current);
+        setShowCursor(false);
+      }
+    }, 40);
+
+    return () => {
+      // Cleanup on unmount or on inView change
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [inView]);
+
   return (
     <motion.div
     initial={{opacity:0}} whileInView={{opacity:1}} transition={{duration:1}}
@@ -25,12 +69,20 @@ const About = ({isDarkMode}) => {
         </motion.div>
 
         <motion.div 
-        initial={{opacity:0}} whileInView={{opacity:1}} transition={{duration:0.6, delay:0.8}}
+        initial={{opacity:0}} whileInView={{opacity:1}} transition={{duration:0.6}}
         className='flex-1'>
-          <p className='mb-10 max-w-2xl font-ovo'>
-            Highly motivated and dedicated student with a strong commitment to continuous learning and personal growth. Eager to
-contribute my skills and work ethic to an organization that values innovation and professional development, while leveraging
-opportunities to further enhance my expertise and create mutual success.
+          <p ref={paragraphRef} className='mb-10 max-w-2xl font-ovo'>
+             {typedText}
+                  {/* Blinking cursor stays inline with text */}
+                  {showCursor && (
+                    <motion.span
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 0 }}
+                      transition={{ repeat: Infinity, duration: 0.8 }}
+                    >
+                      |
+                    </motion.span>
+                  )}
           </p>
 
           <motion.ul 
@@ -57,7 +109,7 @@ opportunities to further enhance my expertise and create mutual success.
               <motion.li 
               whileHover={{scale: 1.1}}
               key={index} className='flex items-center justify-center w-12 sm:w-14 aspect-square border border-gray-400 rounded-lg cursor-pointer duration-500 hover:-translate-y-1'>{
-                <Image src={tool} alt='tool' className='w-5 sm:w-7' />
+                <Image src={tool} alt='tool' className='w-7 sm:w-9' />
               }</motion.li>
             ))}
           </motion.ul>

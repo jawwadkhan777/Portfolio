@@ -1,9 +1,54 @@
 import { assets, workData } from '@/assets/assets'
 import Image from 'next/image'
-import React from 'react'
-import { motion } from "motion/react"
+import React, { useEffect, useRef, useState } from 'react'
+import { motion, useInView } from "motion/react"
 
 const Work = ({isDarkMode}) => {
+    const fullText =
+    "Welcome to my portfolio — browse front-end and full-stack projects that demonstrate how I can bring your ideas to life.";
+
+  const [typedText, setTypedText] = useState("");
+  const [showCursor, setShowCursor] = useState(true);
+
+  const paragraphRef = useRef(null);
+  const inView = useInView(paragraphRef, { once: false }); 
+
+   const intervalRef = useRef(null);
+
+  useEffect(() => {
+    if (!inView) {
+      // Stop if we leave the viewport
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      return;
+    }
+
+    // Reset everything
+    setTypedText("");
+    setShowCursor(true);
+
+    let i = 0;
+
+    // Clear any running interval before starting new one
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
+    intervalRef.current = setInterval(() => {
+      i++;
+      if (i <= fullText.length) {
+        // Slice directly from the original text → no race conditions
+        setTypedText(fullText.slice(0, i));
+      } else {
+        clearInterval(intervalRef.current);
+        setShowCursor(false);
+      }
+    }, 40);
+
+    return () => {
+      // Cleanup on unmount or on inView change
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [inView]);
+
+
   return (
     <motion.div 
     initial={{opacity:0}} whileInView={{opacity:1}} transition={{duration:1}}
@@ -16,9 +61,20 @@ const Work = ({isDarkMode}) => {
         className='text-center text-5xl font-ovo'>My latest work</motion.h2>
 
         <motion.p 
-        initial={{y:-20, opacity:0}} whileInView={{y:0, opacity:1}} transition={{duration:0.5, delay: 0.7}}
+        ref={paragraphRef}
+        initial={{y:-20, opacity:0}} whileInView={{y:0, opacity:1}} transition={{duration:0.5}}
         className='text-center max-w-2xl mx-auto mt-5 mb-12 font-ovo'>
-            Welcome to my web development portfolio! Explore a collection of projects showcasing my expertise in full-stack development.
+            {typedText}
+                  {/* Blinking cursor stays inline with text */}
+                  {showCursor && (
+                    <motion.span
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 0 }}
+                      transition={{ repeat: Infinity, duration: 0.8 }}
+                    >
+                      |
+                    </motion.span>
+                  )}
         </motion.p>
 
         <motion.div 
@@ -44,8 +100,8 @@ const Work = ({isDarkMode}) => {
 
         <motion.a 
         initial={{opacity:0}} whileInView={{opacity:1}} transition={{duration:0.5, delay:1.1}}
-        href="" className='w-max flex items-center justify-center gap-2 text-gray-700 border-[0.5px] border-gray-700 rounded-full py-3 px-10 mx-auto my-20 hover:bg-lightHover duration-500 dark:text-white dark:border-white dark:hover:bg-darkHover'>
-            Show more
+        href="#contact" className='w-max flex items-center justify-center gap-2 text-gray-700 border-[0.5px] border-gray-700 rounded-full py-3 px-10 mx-auto my-20 hover:bg-lightHover duration-500 dark:text-white dark:border-white dark:hover:bg-darkHover'>
+            Get in touch to collaborate
             <Image src={isDarkMode? assets.right_arrow_bold_dark : assets.right_arrow_bold} alt='right-arrow' className='w-4' />
         </motion.a>
     </motion.div>
