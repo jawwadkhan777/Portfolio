@@ -106,7 +106,7 @@ const Header = () => {
             </motion.a>
             <motion.a 
             initial={{y:30, opacity:0}} whileInView={{y:0, opacity:1}} transition={{duration:0.6, delay:1.2}}
-            href="/sample-resume.pdf" className='px-10 py-3 border rounded-full border-gray-500 flex items-center gap-2 bg-white dark:text-black'>My Resume
+            href="/JawwadKhan_CS_resume.pdf" className='px-10 py-3 border rounded-full border-gray-500 flex items-center gap-2 bg-white dark:text-black'>My Resume
                 <Image src={assets.download_icon} alt='' className='w-4' />
             </motion.a>
         </div>
